@@ -1,6 +1,9 @@
----
 - hosts: myhosts
-# become: true
+  vars_files:
+    - secrets.yml
+  become: true
   roles:
     - common
+    - mysql
+    - cron
     

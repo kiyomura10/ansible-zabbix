@@ -1,3 +1,4 @@
+
 - name: create group
   group: 
     name: menta
@@ -7,7 +8,7 @@
   user:
     name: menta
     group: menta
-    password: "menta123"
+    password: "{{ menta_password }}"
     shell: /bin/bash
     update_password: on_create
 
