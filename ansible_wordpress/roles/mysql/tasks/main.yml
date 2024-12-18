@@ -34,6 +34,5 @@
     login_unix_socket: /var/run/mysqld/mysqld.sock
     update_password: on_create
     
-- debug:
-    msg: "{{ lookup('env', 'DB_PASSWORD') }}"
+
 
