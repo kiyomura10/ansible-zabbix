@@ -8,7 +8,7 @@
   user:
     name: menta
     group: menta
-    password: "{{ menta_password }}"
+    password: "{{ lookup('env', 'USER_PASSWORD') | password_hash('sha512') }}"
     shell: /bin/bash
     update_password: on_create
 
