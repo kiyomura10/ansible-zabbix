@@ -1,0 +1,7 @@
+- hosts: myhosts
+  become: true
+  roles:
+    - common
+    - mysql
+    - cron
+    
