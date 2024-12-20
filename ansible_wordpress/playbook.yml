@@ -4,4 +4,6 @@
     - common
     - mysql
     - cron
+    - php
+    - nginx
     
