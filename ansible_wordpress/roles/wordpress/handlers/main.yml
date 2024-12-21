@@ -1,0 +1,9 @@
+- name: restert nginx,php-fpm,mysql
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - nginx
+    - php8.3-fpm
+    - mysql
+    
