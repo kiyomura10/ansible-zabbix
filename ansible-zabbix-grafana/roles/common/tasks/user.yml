@@ -1,0 +1,29 @@
+
+- name: create group
+  group: 
+    name: menta
+    state: present
+
+- name: create user
+  user:
+    name: menta
+    group: menta
+    password: "{{ lookup('env', 'USER_PASSWORD') | password_hash('sha512') }}"
+    shell: /bin/bash
+    update_password: on_create
+
+- name: Set authorized key taken from file
+  authorized_key:
+    user: menta
+    state: present
+    key: "{{ lookup('file', '~/.ssh/menta-key3.pub') }}"
+
+- name: command permission grant
+  lineinfile:
+    path: /etc/sudoers
+    line: "{{ item }}"
+    regexp: "{{ item }}"
+    state: present
+    validate: 'visudo -cf %s'
+  loop:
+    - "menta ALL=(ALL) NOPASSWD:ALL"

@@ -1,0 +1,10 @@
+- name: copy wordpress_db_backup.sh
+  copy:
+    src: roles/cron/files/wordpress_db_backup.sh
+    dest: /home/menta/
+    mode: '0700'
+
+- name: copy crontab
+  copy:
+    src: roles/cron/files/crontab
+    dest: /etc/crontab

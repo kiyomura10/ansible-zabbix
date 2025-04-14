@@ -1,0 +1,6 @@
+ansible_user: Admin
+ansible_httpapi_pass: zabbix
+ansible_network_os: community.zabbix.zabbix
+ansible_connection: httpapi
+ansible_httpapi_host: zabbix.techbull.cloud
+ansible_zabbix_url_path: ""
