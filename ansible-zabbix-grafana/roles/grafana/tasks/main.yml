@@ -1,0 +1,83 @@
+
+- name: Install required apt packages
+  apt:
+    name:
+      - apt-transport-https
+      - software-properties-common
+      - wget
+    state: present
+    
+- name: Ensure /etc/apt/keyrings directory exists
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download and dearmor Grafana GPG key
+  shell: |
+    wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /etc/apt/keyrings/grafana.gpg
+  args:
+    creates: /etc/apt/keyrings/grafana.gpg
+
+- name: Add Grafana APT repository
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main"
+    filename: grafana
+    state: present
+
+- name: Install grafana
+  apt:
+    name:
+      - grafana
+    state: present
+    update_cache: yes
+
+- name: Install Zabbix plugin using grafana-cli
+  command: grafana-cli plugins install alexanderzobnin-zabbix-app
+  args:
+    creates: /var/lib/grafana/plugins/alexanderzobnin-zabbix-app
+     
+- name: start grafana-server
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: yes
+
+- name: Add Zabbix datasource to Grafana
+  grafana_datasource:
+    name: "techbull-zabbix-datasource"
+    grafana_url: "http://192.168.64.12/grafana"
+    grafana_user: "admin"
+    grafana_password: "Taiti199"
+    ds_type: "alexanderzobnin-zabbix-datasource"
+    ds_url: "http://127.0.0.1/api_jsonrpc.php"
+    access: "proxy"
+    is_default: true
+    additional_json_data:
+      trends: true
+      cacheTTL: "1h"
+      timeout: "30"
+      alerting: false
+    additional_secure_json_data:
+      password: "zabbix_alerts"
+    zabbix_user: "zabbix_alerts"
+    zabbix_password: "zabbix_alerts"
+    enforce_secure_data: false
+
+- name: Create 'Imported Dashboards' folder
+  community.grafana.grafana_folder:
+    grafana_url: "http://192.168.64.12/grafana"
+    grafana_user: admin
+    grafana_password: Taiti199
+    title: "Imported Dashboards"
+
+- name: Import Grafana dashboard 
+  community.grafana.grafana_dashboard:
+    grafana_url: "http://192.168.64.12/grafana"
+    grafana_user: admin
+    grafana_password: Taiti199
+    path: https://grafana.com/api/dashboards/8955/revisions/1/download
+    folder: "Imported Dashboards"
+    overwrite: true
+    state: present
+    commit_message: "Imported dashboard 8955 via Ansible"

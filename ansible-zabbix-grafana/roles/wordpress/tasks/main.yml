@@ -1,0 +1,33 @@
+- name: create directory
+  file:
+    path: /var/www/dev.menta.me
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: downlad wordpress
+  get_url:
+    url: https://wordpress.org/latest.tar.gz
+    dest: /var/www/dev.menta.me
+
+- name: unarchive latest.tar.gz
+  unarchive:
+    src: /var/www/dev.menta.me/wordpress-6.7.1.tar.gz
+    dest: /var/www/dev.menta.me
+    remote_src: yes
+
+- name: Move WordPress files
+  shell: mv /var/www/dev.menta.me/wordpress/* /var/www/dev.menta.me/
+  args:
+    creates: /var/www/dev.menta.me/index.php
+
+- name: copy wp-config.php
+  copy: 
+    src: roles/wordpress/files/wp-config.php
+    dest: /var/www/dev.menta.me/wp-config.php
+  notify: restert nginx,php-fpm,mysql
+
+
+ 
+

@@ -1,0 +1,48 @@
+- name: Download Zabbix package
+  get_url:
+    url: "https://repo.zabbix.com/zabbix/5.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_5.0+ubuntu24.04_all.deb"
+    dest: "/tmp/zabbix-release_latest_5.0+ubuntu24.04_all.deb"
+
+- name: Install Zabbix release package
+  apt:
+    deb: "/tmp/zabbix-release_latest_5.0+ubuntu24.04_all.deb"
+
+- name: Install Zabbix agent
+  apt:
+    name:
+      - zabbix-agent
+    state: present
+    update_cache: yes
+
+- name: copy template_db_mysql.conf
+  copy:
+    src: roles/zabbix-agent/files/template_db_mysql.conf
+    dest: /etc/zabbix/zabbix_agentd.d/
+  notify: restart zabbix agent
+
+- name: Create Zabbix monitor user
+  mysql_user:
+    name: zbx_monitor
+    host: localhost
+    password: "{{ lookup('env', 'ZABBIX_MONITOR_PASSWORD') }}"
+    priv: "zabbix.*:ALL"
+    state: present
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    update_password: on_create
+
+- name: Copy .my.cnf 
+  template: 
+    src: .my.cnf
+    dest: /var/lib/zabbix/.my.cnf
+    owner: zabbix
+    group: zabbix
+    mode: '0600'
+
+
+- name: Start Zabbix agent
+  systemd:
+    name: zabbix-agent
+    state: started
+    enabled: true
+

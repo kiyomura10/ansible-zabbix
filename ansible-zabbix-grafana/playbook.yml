@@ -1,0 +1,29 @@
+- name: Setup zabbix server
+  hosts: zabbix-server
+  become: true
+  roles:
+    # - common
+    # - cron
+    # - zabbix-nginx
+    # - zabbix-php
+    # - zabbix-mysql
+    # - zabbix-server
+    # - grafana
+    - zabbix-api
+   
+
+- name: Setup wordpress server
+  hosts: wordpress
+  become: true
+  roles:
+    # - common
+    # - cron
+    # - nginx
+    # - php
+    # - mysql
+    # - wordpress
+    # - zabbix-agent
+
+  
+   
+    

@@ -1,0 +1,61 @@
+- name: Download MySQL APT config package
+  get_url:
+    headers:
+      user-agent: curl/7.81.0 
+    url: https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb
+    dest: /tmp/mysql-apt-config_0.8.33-1_all.deb
+
+- name: Install mysql-apt-config .deb package
+  apt:
+    deb: /tmp/mysql-apt-config_0.8.33-1_all.deb
+    state: present
+
+- name: install mysqld
+  apt: 
+    name: 
+      - "mysql-server=8.0.41-0ubuntu0.20.04.1"
+      - python3-pymysql
+    state: present
+    update_cache: yes
+
+- name: copy mysqld.cnf
+  copy:
+    src: roles/zabbix-mysql/files/mysqld.cnf
+    dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+  notify: restart mysql
+
+- name: start mysql
+  systemd:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Create Zabbix database
+  mysql_db:
+    name: zabbix
+    state: present
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    encoding: utf8
+    collation: utf8_bin
+
+- name: Create Zabbix user
+  ansible.builtin.mysql_user:
+    name: zabbix
+    host: localhost
+    password: "{{ lookup('env', 'ZABBIX_DB_PASSWORD') }}"
+    priv: "zabbix.*:ALL"
+    state: present
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    update_password: on_create
+
+- name: Set global log_bin_trust_function_creators to 1
+  community.mysql.mysql_query:
+    query: "SET GLOBAL log_bin_trust_function_creators = 1"
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Show DB password or warn
+  debug:
+    msg: "ZABBIX_DB_PASSWORD is {{ lookup('env', 'ZABBIX_DB_PASSWORD') | default('NOT SET') }}"

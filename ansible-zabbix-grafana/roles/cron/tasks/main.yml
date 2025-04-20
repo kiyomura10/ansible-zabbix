@@ -1,0 +1,13 @@
+- name: copy db_backup.sh
+  template:
+    src: roles/cron/templates/db_backup.sh
+    dest: /home/menta/
+    mode: '0700'
+
+- name: copy cron.d db_backup
+  copy:
+    src: roles/cron/files/db_backup
+    dest: /etc/cron.d/
+    mode: '0644'
+    owner: root
+    group: root

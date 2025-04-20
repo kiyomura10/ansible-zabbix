@@ -1,0 +1,47 @@
+- name: install mysqld
+  apt: 
+    name: mysql-server
+    state: present
+
+- name: copy mysqld.cnf
+  copy:
+    src: roles/mysql/files/mysqld.cnf
+    dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+  notify: restart mysql
+
+- name: start mysql
+  systemd:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Ensure python3-pip is installed
+  apt:
+    name: python3-pip
+    state: present
+
+- name: Install PyMySQL using pip3
+  pip:
+    name: PyMySQL
+    executable: pip3
+    extra_args: "--break-system-packages"
+
+- name: create wordpress_db
+  mysql_db:
+    name: wordpress_db
+    state: present
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    
+
+- name: create mysql user
+  mysql_user:
+    name: menta
+    password: "{{ lookup('env', 'DB_PASSWORD') }}"
+    host: localhost
+    priv: '*.*:ALL'
+    state: present
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    update_password: on_create
+   

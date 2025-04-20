@@ -1,0 +1,28 @@
+- name: php install
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop: 
+    - php
+    - php-fpm
+    - php-json
+    - php-mysql
+    - php-curl
+    - php-xml
+    - php-igbinary
+    - php-imagick
+    - php-intl
+    - php-mbstring
+    - php-zip
+
+- name: copy php-fpm www.conf
+  copy:
+    src: "roles/php/files/www.conf"
+    dest: "/etc/php/8.3/fpm/pool.d/www.conf"
+  notify: restart php-fpm
+
+- name: start php-fpm
+  systemd:
+       name: php8.3-fpm
+       state: started
+       enabled: yes

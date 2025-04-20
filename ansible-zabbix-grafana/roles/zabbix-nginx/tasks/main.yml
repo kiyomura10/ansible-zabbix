@@ -1,0 +1,22 @@
+- name: install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: copy nginx.conf
+  copy: 
+    src: "{{ item.src }}"
+    dest: /etc/nginx/
+  loop: 
+    - { src: "roles/zabbix-nginx/files/conf.d" }
+    - { src: "roles/zabbix-nginx/files/nginx.conf" }
+  notify: restart nginx
+
+- name : enable nginx　
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+  
+  
