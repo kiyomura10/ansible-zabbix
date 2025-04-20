@@ -1,0 +1,41 @@
+- name: Install software-properties-common
+  apt:
+    name: software-properties-common
+    state: present
+    update_cache: yes
+
+- name: Add Ondrej PHP PPA
+  apt_repository:
+    repo: ppa:ondrej/php
+    state: present
+
+- name: php install
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop: 
+    - php7.4
+    - php7.4-gd
+    - php7.4-bcmath
+    - php7.4-ctype
+    - php7.4-xml
+    - php7.4-xmlreader
+    - php7.4-xmlwriter
+    - php7.4-mbstring
+    - php7.4-gettext
+    - php7.4-sockets
+    - php7.4-mysql
+    - php7.4-fpm
+
+
+- name: copy php-fpm www.conf
+  copy:
+    src: "roles/zabbix-php/files/zabbix-php-fpm.conf"
+    dest: "/etc/php/7.4/fpm/pool.d/zabbix-php-fpm.conf"
+  notify: restart php-fpm
+
+- name: start php-fpm
+  systemd:
+       name: php7.4-fpm
+       state: started
+       enabled: yes

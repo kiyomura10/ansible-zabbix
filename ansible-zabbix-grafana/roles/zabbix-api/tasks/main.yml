@@ -1,0 +1,161 @@
+- name: Set api configuration facts
+  ansible.builtin.set_fact:
+    ansible_network_os: community.zabbix.zabbix
+    ansible_connection: httpapi
+    ansible_httpapi_port: 80
+    ansible_zabbix_url_path: ''
+    ansible_host: "zabbix.techbull.cloud"
+    ansible_user: "Admin"
+    ansible_httpapi_pass: "zabbix"
+
+
+- name: create host dev.menta.me
+  become: false 
+  zabbix_host:
+    host_name: "dev.menta.me"
+    host_groups:
+      - "Linux servers"
+    link_templates:
+      - "Template DB MySQL by Zabbix agent"
+      - "Template OS Linux by Zabbix agent"
+    status: enabled
+    state: present  
+    interfaces:                               
+      - type: 1
+        main: 1
+        useip: 1
+        ip: "192.168.64.13"
+        dns: ""
+        port: 10050
+
+- name: Get host info from Zabbix
+  become: false 
+  community.zabbix.zabbix_host_info:
+    host_name: "dev.menta.me"
+  register: host_info
+
+- name: Show interfaces
+  debug:
+    var: host_info.zabbix_host[0].interfaces
+
+- name: Debug full host_info
+  debug:
+    var: host_info
+
+- name: create nginx process item
+  become: false 
+  community.zabbix.zabbix_item:
+    host_name: "dev.menta.me"
+    name: "Nginx process count"
+    params:
+      key: "proc.num[nginx]"
+      type: zabbix_agent
+      value_type: numeric_unsigned
+      delay: 30s
+      interfaceid: 5
+    state: present
+  
+
+- name: create mysqld process item
+  become: false 
+  community.zabbix.zabbix_item:
+    host_name: "dev.menta.me"
+    name: "MySQL process count"
+    params:
+      key: "proc.num[mysqld]"
+      type: zabbix_agent
+      value_type: numeric_unsigned
+      delay: 30s
+      interfaceid: 5
+    state: present
+    
+- name: Create Zabbix item for MySQL deadlock detection
+  become: false 
+  community.zabbix.zabbix_item:
+    host_name: "dev.menta.me"
+    name: "MySQL Deadlock Count"
+    params:
+      key: 'mysql.deadlocks["{$MYSQL.HOST}","{$MYSQL.PORT}"]'
+      type: zabbix_agent
+      value_type: numeric_unsigned
+      delay: 60s
+      interfaceid: 5
+    state: present
+
+- name: Set global macro {$ZABBIX.URL}
+  become: false 
+  community.zabbix.zabbix_globalmacro:
+    macro_name: '{$ZABBIX.URL}'
+    macro_value: http://192.168.64.12/zabbix/
+    macro_type: text
+    state: present
+
+- name: create zabbix trigger
+  become: false 
+  community.zabbix.zabbix_trigger:
+    name: Disk usage over 90%
+    host_name: "dev.menta.me"
+    params:
+      severity: high
+      expression: '{dev.menta.me:vfs.fs.size[/,pused].last()}>=90'
+      manual_close: false
+      enabled: True
+    state: present
+
+
+- name: create a new zabbix user
+  become: false 
+  community.zabbix.zabbix_user:
+    username: zabbix_alerts
+    passwd: zabbix-alerts
+    role_name: Super admin
+    usrgrps:
+      - Zabbix administrators 
+    lang: ja_JP
+    theme: default
+    autologin: yes
+    refresh: "60"
+    rows_per_page: "200"
+    after_login_url: ""
+    user_medias:
+      - mediatype: Slack
+        sendto: zabbix
+        period: 1-7,00:00-24:00
+        severity:
+          not_classified: yes
+          information: yes
+          warning: yes
+          average: yes
+          high: yes
+          disaster: yes
+        active: yes
+    state: "absent"
+  ignore_errors: yes
+
+- name: Deploy trigger action
+  become: false
+  community.zabbix.zabbix_action:
+    name: "zabbix"
+    event_source: "trigger"
+    state: present
+    status: enabled
+    esc_period: 60
+    conditions:
+      - type: "host"
+        operator: "="
+        value: "dev.menta.me"
+    operations:
+      - type: send_message
+        media_type: "Slack"
+        subject: "Something bad is happening"
+        op_message: "Come on, guys do something"
+        send_to_users:
+          - "zabbix_alerts"
+    recovery_operations:
+      - type: send_message
+        media_type: "Slack"
+        subject: "Something bad is happening"
+        op_message: "Come on, guys do something"
+        send_to_users:
+          - "zabbix_alerts"
+  ignore_errors: yes

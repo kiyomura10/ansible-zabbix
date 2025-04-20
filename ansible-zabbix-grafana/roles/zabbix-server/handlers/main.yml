@@ -1,0 +1,4 @@
+- name: restart zabbix-server
+  systemd:
+    name: zabbix-server
+    state: restarted
