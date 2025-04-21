@@ -15,6 +15,17 @@
     state: started
     enabled: yes
 
+- name: Ensure python3-pip is installed
+  apt:
+    name: python3-pip
+    state: present
+
+- name: Install PyMySQL using pip3
+  pip:
+    name: PyMySQL
+    executable: pip3
+    extra_args: "--break-system-packages"
+
 - name: create wordpress_db
   mysql_db:
     name: wordpress_db
@@ -33,6 +44,4 @@
     login_user: root
     login_unix_socket: /var/run/mysqld/mysqld.sock
     update_password: on_create
-    
-
-
+   

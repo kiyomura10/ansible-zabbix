@@ -1,2 +1,2 @@
 [myhosts]
-web1 ansible_host=192.168.64.9 ansible_user=menta ansible_ssh_private_key_file=~/.ssh/menta-key3
+web1 ansible_host=192.168.64.13 ansible_user=menta ansible_ssh_private_key_file=~/.ssh/menta-key3

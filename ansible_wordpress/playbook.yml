@@ -2,9 +2,9 @@
   become: true
   roles:
     - common
+    - php
     - mysql
     - cron
-    - php
     - nginx
     - wordpress
     

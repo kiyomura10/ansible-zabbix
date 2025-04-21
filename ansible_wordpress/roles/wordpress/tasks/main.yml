@@ -13,7 +13,7 @@
 
 - name: unarchive latest.tar.gz
   unarchive:
-    src: /var/www/dev.menta.me/latest.tar.gz
+    src: /var/www/dev.menta.me/wordpress-6.7.1.tar.gz
     dest: /var/www/dev.menta.me
     remote_src: yes
 
