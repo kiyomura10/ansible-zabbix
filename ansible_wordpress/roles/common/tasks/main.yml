@@ -1,3 +1,0 @@
-
-- name: include tasks/user.yml
-  include_tasks: tasks/user.yml
